@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  # MySQL Database - Cơ sở dữ liệu chính cho hệ thống đặt vé xem phim
+  mysql:
+    image: mysql:8.0
+    container_name: movie-tickets-mysql
+    restart: always
+    environment:
+      # Mật khẩu root của MySQL
+      MYSQL_ROOT_PASSWORD: root123
+      # Tên database sẽ được tạo tự động
+      MYSQL_DATABASE: movie_tickets_db
+      # User và password cho ứng dụng
+      MYSQL_USER: movie_app
+      MYSQL_PASSWORD: movie_pass123
+      # Charset UTF-8 để hỗ trợ tiếng Việt
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    ports:
+      # Port 3306 để Spring Boot kết nối
+      - "3306:3306"
+    volumes:
+      # Mount file init.sql để tạo schema tự động khi container khởi động
+      - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      # Mount file seed-data.sql để insert dữ liệu mẫu
+      - ./seed-data.sql:/docker-entrypoint-initdb.d/02-seed-data.sql
+      # Volume để lưu trữ dữ liệu persistent
+      - mysql_data:/var/lib/mysql
+    networks:
+      - movie-tickets-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
+      timeout: 20s
+      retries: 10
+      interval: 10s
+
+  # phpMyAdmin - Công cụ quản trị database qua web interface
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: movie-tickets-phpmyadmin
+    restart: always
+    environment:
+      # Kết nối đến MySQL service
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      # Tự động điền sẵn username và password khi đăng nhập
+      PMA_USER: movie_app
+      PMA_PASSWORD: movie_pass123
+      # Cho phép login với user bất kỳ (nếu muốn đổi sang root)
+      PMA_ARBITRARY: 1
+      # Cấu hình upload file lớn hơn (nếu cần import data)
+      UPLOAD_LIMIT: 100M
+    ports:
+      # Truy cập phpMyAdmin tại http://localhost:8080
+      - "8080:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - movie-tickets-network
+
+# Network để các container giao tiếp với nhau
+networks:
+  movie-tickets-network:
+    driver: bridge
+
+# Volume để lưu trữ dữ liệu MySQL (không bị mất khi restart container)
+volumes:
+  mysql_data:
+    driver: local

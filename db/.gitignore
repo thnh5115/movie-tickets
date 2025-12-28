@@ -1,0 +1,19 @@
+# Ignore file .env (chứa thông tin nhạy cảm)
+.env
+
+# Ignore các file backup của MySQL
+*.sql.backup
+*.sql.bak
+
+# Ignore các file log
+*.log
+
+# Ignore các file temporary
+*.tmp
+*.temp
+
+# Mac OS
+.DS_Store
+
+# Windows
+Thumbs.db
