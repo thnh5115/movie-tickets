@@ -18,8 +18,8 @@ services:
       MYSQL_CHARSET: utf8mb4
       MYSQL_COLLATION: utf8mb4_unicode_ci
     ports:
-      # Port 3306 để Spring Boot kết nối
-      - "3306:3306"
+      # Port 3306 để Spring Boot kết nối (đổi sang 3307 ở host để tránh xung đột)
+      - "3307:3306"
     volumes:
       # Mount file init.sql để tạo schema tự động khi container khởi động
       - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql
@@ -52,8 +52,8 @@ services:
       # Cấu hình upload file lớn hơn (nếu cần import data)
       UPLOAD_LIMIT: 100M
     ports:
-      # Truy cập phpMyAdmin tại http://localhost:8080
-      - "8080:80"
+      # Truy cập phpMyAdmin tại http://localhost:8081
+      - "8081:80"
     depends_on:
       mysql:
         condition: service_healthy

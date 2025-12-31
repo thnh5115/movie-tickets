@@ -11,12 +11,12 @@ SET NAMES utf8mb4;
 -- 1. INSERT USERS - Tạo 2 tài khoản demo
 -- ============================================================================
 -- Password mặc định cho tất cả: "password123"
--- BCrypt hash của "password123": $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy
+-- BCrypt hash của "123456": $2b$10$bCO8KmeBjlTCwQeAGUfnnuaonq2eKaU/smJENG4t1MgMQKMnd3tHG
 
 INSERT INTO users (email, name, password_hash, phone, role, status) VALUES
-('user1@demo.com', 'Nguyễn Văn A', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '0901234567', 'USER', 'ACTIVE'),
-('user2@demo.com', 'Trần Thị B', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '0902234567', 'USER', 'ACTIVE'),
-('admin@demo.com', 'Admin System', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '0903234567', 'ADMIN', 'ACTIVE');
+('user1@demo.com', 'Nguyễn Văn A', '$2b$10$bCO8KmeBjlTCwQeAGUfnnuaonq2eKaU/smJENG4t1MgMQKMnd3tHG', '0901234567', 'USER', 'ACTIVE'),
+('user2@demo.com', 'Trần Thị B', '$2b$10$bCO8KmeBjlTCwQeAGUfnnuaonq2eKaU/smJENG4t1MgMQKMnd3tHG', '0902234567', 'USER', 'ACTIVE'),
+('admin@demo.com', 'Admin System', '$2b$10$bCO8KmeBjlTCwQeAGUfnnuaonq2eKaU/smJENG4t1MgMQKMnd3tHG', '0903234567', 'ADMIN', 'ACTIVE');
 
 
 -- ============================================================================

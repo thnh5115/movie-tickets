@@ -43,7 +43,7 @@ export default function SuccessPage({ params }: { params: Promise<{ orderId: str
 
     const loadOrder = async () => {
       try {
-        const orderData = await ordersApi.getById(orderId);
+        const orderData = await ordersApi.getById(orderId, user.id);
         if (!orderData) {
           router.push('/');
           return;

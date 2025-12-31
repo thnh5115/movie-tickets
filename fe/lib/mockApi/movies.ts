@@ -33,14 +33,45 @@ let movies: Movie[] = [
   },
 ];
 
+import fetchClient from '@/lib/api/fetchClient';
+
+const useMock = process.env.NEXT_PUBLIC_USE_MOCK === 'true';
+
 export const moviesApi = {
   getAll: async (): Promise<Movie[]> => {
-    await new Promise((resolve) => setTimeout(resolve, 300));
-    return [...movies];
+    if (useMock) {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      return [...movies];
+    }
+    const data = await fetchClient.request('/movies');
+    return (data as any[]).map((m) => ({
+      id: String(m.id),
+      title: m.title,
+      posterUrl: m.posterUrl,
+      duration: m.duration,
+      genre: m.genre ?? '',
+      releaseDate: m.releaseDate ?? '',
+      rating: m.rating ?? 0,
+      description: m.description ?? '',
+    }));
   },
 
   getById: async (id: string): Promise<Movie | undefined> => {
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    return movies.find((m) => m.id === id);
+    if (useMock) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      return movies.find((m) => m.id === id);
+    }
+    const data = await fetchClient.request(`/movies/${id}`);
+    if (!data) return undefined;
+    return {
+      id: String(data.id),
+      title: data.title,
+      posterUrl: data.posterUrl,
+      duration: data.duration,
+      genre: data.genre ?? '',
+      releaseDate: data.releaseDate ?? '',
+      rating: data.rating ?? 0,
+      description: data.description ?? '',
+    };
   },
 };

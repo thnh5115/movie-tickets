@@ -18,23 +18,34 @@ const SEED_USERS: User[] = [
   },
 ];
 
+import fetchClient from '@/lib/api/fetchClient';
+
+const useMock = process.env.NEXT_PUBLIC_USE_MOCK === 'true';
+
 export const authApi = {
   login: async (email: string, password: string, remember: boolean): Promise<User> => {
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    if (useMock) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-    if (password !== '123456') {
-      throw new Error('Mật khẩu không đúng');
+      if (password !== '123456') {
+        throw new Error('Mật khẩu không đúng');
+      }
+
+      const user = SEED_USERS.find((u) => u.email === email);
+      if (!user) {
+        throw new Error('Email không tồn tại');
+      }
+
+      if (remember && typeof window !== 'undefined') {
+        localStorage.setItem('auth_session', JSON.stringify(user));
+      }
+
+      return user;
     }
 
-    const user = SEED_USERS.find((u) => u.email === email);
-    if (!user) {
-      throw new Error('Email không tồn tại');
-    }
-
-    if (remember && typeof window !== 'undefined') {
-      localStorage.setItem('auth_session', JSON.stringify(user));
-    }
-
+    const data = await fetchClient.request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
+    const user = { id: String(data.userId ?? data.id ?? '1'), email: data.email ?? email, name: data.name ?? 'User' };
+    if (remember && typeof window !== 'undefined') localStorage.setItem('auth_session', JSON.stringify(user));
     return user;
   },
 

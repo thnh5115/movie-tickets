@@ -211,7 +211,7 @@ function SeatSelectionContent() {
       );
 
       // Confirm order
-      await ordersApi.confirm(order.id);
+      await ordersApi.confirm(order.id, user.id);
 
       clearSeats();
       setHoldUntil(null);
