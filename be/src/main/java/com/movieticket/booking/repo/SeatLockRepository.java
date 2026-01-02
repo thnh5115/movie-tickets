@@ -29,7 +29,7 @@ public interface SeatLockRepository extends JpaRepository<SeatLock, Long> {
 
   @Modifying
   @Transactional
-  @Query("update SeatLock sl set sl.status = com.movieticket.domain.enums.SeatLockStatus.EXPIRED where sl.status = com.movieticket.domain.enums.SeatLockStatus.HOLDING and sl.expiresAt <= :now")
+  @Query("delete from SeatLock sl where sl.status = com.movieticket.domain.enums.SeatLockStatus.HOLDING and sl.expiresAt <= :now")
   int expireAll(@Param("now") Instant now);
 
   @Transactional

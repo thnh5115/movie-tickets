@@ -533,12 +533,7 @@ BEGIN
     -- Bắt đầu transaction
     START TRANSACTION;
     
-    -- Cập nhật status của các lock đã hết hạn
-    UPDATE seat_locks
-    SET status = 'EXPIRED', updated_at = NOW()
-    WHERE status = 'HOLDING' AND expires_at < NOW();
-    
-    -- Mở cursor
+    -- Mở cursor TRƯỚC khi DELETE
     OPEN cur_expired_locks;
     
     read_loop: LOOP
@@ -555,6 +550,10 @@ BEGIN
     END LOOP;
     
     CLOSE cur_expired_locks;
+    
+    -- XÓA các lock đã hết hạn (thay vì UPDATE sang EXPIRED)
+    DELETE FROM seat_locks
+    WHERE status = 'HOLDING' AND expires_at < NOW();
     
     -- Cập nhật các booking đã hết hạn
     UPDATE bookings

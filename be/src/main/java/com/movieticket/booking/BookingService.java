@@ -189,6 +189,65 @@ public class BookingService {
     );
   }
 
+  public List<BookingResponse> getByUserId(Long userId) {
+    List<Booking> bookings = bookingRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    return bookings.stream().map(b -> {
+      List<Long> seatIds;
+      try {
+        seatIds = mapper.readValue(b.getSeatIdsJson(), 
+            mapper.getTypeFactory().constructCollectionType(List.class, Long.class));
+      } catch (Exception e) {
+        seatIds = Collections.emptyList();
+      }
+      return new BookingResponse(
+          b.getId(),
+          b.getBookingCode(),
+          b.getStatus().name(),
+          b.getShowtime().getId(),
+          seatIds,
+          b.getTotalAmount(),
+          b.getHoldUntil(),
+          b.getCreatedAt()
+      );
+    }).collect(Collectors.toList());
+  }
+
+  @Transactional
+  public void cancel(Long userId, Long bookingId) {
+    Booking b = bookingRepository.findById(bookingId)
+        .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+
+    if (!Objects.equals(b.getUserId(), userId)) {
+      throw new IllegalArgumentException("Forbidden: Cannot cancel other user's booking");
+    }
+
+    if (b.getStatus() == BookingStatus.CONFIRMED) {
+      throw new IllegalArgumentException("Cannot cancel confirmed booking");
+    }
+
+    // Release seats
+    List<BookingSeat> items = bookingSeatRepository.findByBookingId(bookingId);
+    for (BookingSeat item : items) {
+      Long seatId = item.getSeat().getId();
+      Seat seat = seatRepository.findByIdForUpdate(seatId).orElse(null);
+      
+      if (seat != null && seat.getStatus() == SeatStatus.LOCKED) {
+        seat.setStatus(SeatStatus.AVAILABLE);
+        seatRepository.save(seat);
+      }
+
+      // Release seat lock
+      seatLockRepository.findHoldingForUpdate(seatId).ifPresent(lock -> {
+        if (Objects.equals(lock.getUserId(), userId)) {
+          seatLockRepository.delete(lock);
+        }
+      });
+    }
+
+    b.setStatus(BookingStatus.CANCELLED);
+    bookingRepository.save(b);
+  }
+
   private String genCode() {
     return "BK" + System.currentTimeMillis(); // VARCHAR(20)
   }

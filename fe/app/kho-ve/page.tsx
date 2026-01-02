@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/useAuthStore';
-import { ordersApi } from '@/lib/mockApi/orders';
+import { ordersApi } from '@/lib/api/orders';
 import { showtimesApi } from '@/lib/mockApi/showtimes';
 import { moviesApi } from '@/lib/mockApi/movies';
 import { seatsApi } from '@/lib/mockApi/seats';
@@ -23,6 +23,17 @@ interface OrderWithDetails extends Order {
   seats?: Seat[];
 }
 
+// Map backend status to frontend status
+const mapBackendStatus = (status: string): Order['status'] => {
+  const mapping: Record<string, Order['status']> = {
+    'PENDING': 'CHỜ_THANH_TOÁN',
+    'CONFIRMED': 'ĐÃ_THANH_TOÁN',
+    'CANCELLED': 'ĐÃ_HỦY',
+    'EXPIRED': 'HẾT_HẠN',
+  };
+  return mapping[status] || status as Order['status'];
+};
+
 export default function TicketVaultPage() {
   const { user } = useAuthStore();
   const router = useRouter();
@@ -40,15 +51,18 @@ export default function TicketVaultPage() {
     if (!user) return;
 
     try {
-      // Check and expire old orders
-      await ordersApi.checkExpirations();
-
-      // Load all orders (pending, confirmed, and cancelled)
+      // Load all orders from backend
       const allOrders = await ordersApi.getByUserId(user.id);
+
+      // Map backend status to frontend status
+      const ordersWithMappedStatus = allOrders.map(order => ({
+        ...order,
+        status: mapBackendStatus(order.status),
+      }));
 
       // Load details for each order
       const ordersWithDetails = await Promise.all(
-        allOrders.map(async (order) => {
+        ordersWithMappedStatus.map(async (order) => {
           try {
             const showtime = await showtimesApi.getById(order.showtimeId);
             if (!showtime) return order;
@@ -128,11 +142,11 @@ export default function TicketVaultPage() {
   };
 
   const handleConfirmPayment = async () => {
-    if (!selectedOrder) return;
+    if (!selectedOrder || !user) return;
 
     setIsConfirming(true);
     try {
-      await ordersApi.confirm(selectedOrder.id);
+      await ordersApi.confirm(selectedOrder.id, user.id);
       setShowPaymentDialog(false);
       router.push(`/thanh-cong/${selectedOrder.id}`);
     } catch (error) {
@@ -147,8 +161,10 @@ export default function TicketVaultPage() {
   };
 
   const handleCancel = async (orderId: string) => {
+    if (!user) return;
+    
     try {
-      await ordersApi.cancel(orderId);
+      await ordersApi.cancel(orderId, user.id);
       await loadOrders();
     } catch (error) {
       toast({

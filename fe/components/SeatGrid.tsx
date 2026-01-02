@@ -14,12 +14,28 @@ interface SeatGridProps {
 export function SeatGrid({ seats, selectedSeats, onSeatClick, userId }: SeatGridProps) {
   const { toast } = useToast();
 
+  // Kiểm tra xem lock đã hết hạn chưa
+  const isLockExpired = (seat: Seat): boolean => {
+    if (!seat.holdUntil) return true;
+    return new Date(seat.holdUntil).getTime() < Date.now();
+  };
+
+  // Lấy trạng thái thực tế của ghế (tự động chuyển ĐANG_GIỮ hết hạn về TRỐNG)
+  const getEffectiveStatus = (seat: Seat): string => {
+    if (seat.status === 'ĐANG_GIỮ' && isLockExpired(seat)) {
+      return 'TRỐNG';
+    }
+    return seat.status;
+  };
+
   const handleSeatClick = (seat: Seat) => {
-    if (seat.status === 'ĐÃ_ĐẶT') {
+    const effectiveStatus = getEffectiveStatus(seat);
+    
+    if (effectiveStatus === 'ĐÃ_ĐẶT') {
       return;
     }
 
-    if (seat.status === 'ĐANG_GIỮ' && seat.heldBy !== userId) {
+    if (effectiveStatus === 'ĐANG_GIỮ' && seat.heldBy !== userId) {
       return;
     }
 
@@ -42,24 +58,27 @@ export function SeatGrid({ seats, selectedSeats, onSeatClick, userId }: SeatGrid
               {seats
                 .filter((s) => s.row === row)
                 .sort((a, b) => a.number - b.number)
-                .map((seat) => (
-                  <button
-                    key={seat.id}
-                    onClick={() => handleSeatClick(seat)}
-                    disabled={seat.status === 'ĐÃ_ĐẶT' || (seat.status === 'ĐANG_GIỮ' && seat.heldBy !== userId)}
-                    className={cn(
-                      'w-10 h-10 rounded-t-lg text-sm font-medium transition-all',
-                      'hover:scale-110 disabled:cursor-not-allowed disabled:hover:scale-100',
-                      seat.status === 'TRỐNG' && 'bg-green-500 hover:bg-green-600 text-white',
-                      seat.status === 'ĐANG_GIỮ' && seat.heldBy === userId && 'bg-yellow-500 text-white',
-                      seat.status === 'ĐANG_GIỮ' && seat.heldBy !== userId && 'bg-gray-300 text-gray-500',
-                      seat.status === 'ĐÃ_ĐẶT' && 'bg-red-500 text-white',
-                      selectedSeats.includes(seat.id) && 'ring-2 ring-blue-500 ring-offset-2'
-                    )}
-                  >
-                    {seat.number}
-                  </button>
-                ))}
+                .map((seat) => {
+                  const effectiveStatus = getEffectiveStatus(seat);
+                  return (
+                    <button
+                      key={seat.id}
+                      onClick={() => handleSeatClick(seat)}
+                      disabled={effectiveStatus === 'ĐÃ_ĐẶT' || (effectiveStatus === 'ĐANG_GIỮ' && seat.heldBy !== userId)}
+                      className={cn(
+                        'w-10 h-10 rounded-t-lg text-sm font-medium transition-all',
+                        'hover:scale-110 disabled:cursor-not-allowed disabled:hover:scale-100',
+                        effectiveStatus === 'TRỐNG' && 'bg-green-500 hover:bg-green-600 text-white',
+                        effectiveStatus === 'ĐANG_GIỮ' && seat.heldBy === userId && 'bg-yellow-500 text-white',
+                        effectiveStatus === 'ĐANG_GIỮ' && seat.heldBy !== userId && 'bg-gray-300 text-gray-500',
+                        effectiveStatus === 'ĐÃ_ĐẶT' && 'bg-red-500 text-white',
+                        selectedSeats.includes(seat.id) && 'ring-2 ring-blue-500 ring-offset-2'
+                      )}
+                    >
+                      {seat.number}
+                    </button>
+                  );
+                })}
             </div>
           </div>
         ))}

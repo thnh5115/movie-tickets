@@ -6,6 +6,8 @@ import com.movieticket.common.SecurityContext;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Objects;
+
 @RestController
 @RequestMapping("/bookings")
 public class BookingController {
@@ -36,5 +38,23 @@ public class BookingController {
                                @PathVariable("id") Long bookingId) {
     Long userId = SecurityContext.requireUserId(xUserId);
     return ApiResponse.ok(bookingService.get(userId, bookingId));
+  }
+
+  @GetMapping("/user/{userId}")
+  public ApiResponse<?> getUserBookings(@RequestHeader("X-User-Id") String xUserId,
+                                        @PathVariable("userId") Long userId) {
+    Long requestUserId = SecurityContext.requireUserId(xUserId);
+    if (!Objects.equals(requestUserId, userId)) {
+      throw new IllegalArgumentException("Forbidden: Cannot access other user's bookings");
+    }
+    return ApiResponse.ok(bookingService.getByUserId(userId));
+  }
+
+  @PostMapping("/{id}/cancel")
+  public ApiResponse<?> cancel(@RequestHeader("X-User-Id") String xUserId,
+                               @PathVariable("id") Long bookingId) {
+    Long userId = SecurityContext.requireUserId(xUserId);
+    bookingService.cancel(userId, bookingId);
+    return ApiResponse.ok("Booking cancelled successfully");
   }
 }

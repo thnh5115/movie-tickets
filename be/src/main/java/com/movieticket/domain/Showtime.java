@@ -27,6 +27,8 @@ public class Showtime {
 
   @Column(name="room_number", length=20) private String roomNumber;
 
+  @Column(name="base_price") private java.math.BigDecimal basePrice;
+
   @Column(name="available_seats") private Integer availableSeats;
   @Column(name="total_seats") private Integer totalSeats;
 
@@ -41,4 +43,5 @@ public class Showtime {
   public LocalDate getShowtimeDate(){return showtimeDate;}
   public LocalTime getStartTime(){return startTime;}
   public String getRoomNumber(){return roomNumber;}
+  public java.math.BigDecimal getBasePrice(){return basePrice;}
 }

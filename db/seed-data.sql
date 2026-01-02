@@ -39,7 +39,7 @@ INSERT INTO movies (title, poster_url, duration, genre, release_date, rating, de
 ),
 (
     'Mai',
-    'https://www.cgv.vn/media/catalog/product/cache/1/image/c5f0a1eff4c394a251036189ccddaacd/p/o/poster_mai_1_.jpg',
+    'https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg',
     131,
     'Drama, Romance',
     '2024-02-10',
@@ -65,7 +65,7 @@ INSERT INTO movies (title, poster_url, duration, genre, release_date, rating, de
 ),
 (
     'Đào, Phở và Piano',
-    'https://www.cgv.vn/media/catalog/product/cache/1/image/c5f0a1eff4c394a251036189ccddaacd/7/0/700x1000-dao-pho.jpg',
+    'https://upload.wikimedia.org/wikipedia/vi/2/29/%C3%81p_ph%C3%ADch_%C4%90%C3%A0o%2C_ph%E1%BB%9F_v%C3%A0_piano.jpg',
     108,
     'Drama, War',
     '2024-02-23',

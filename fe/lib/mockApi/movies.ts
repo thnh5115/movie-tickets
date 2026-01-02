@@ -4,7 +4,7 @@ let movies: Movie[] = [
   {
     id: '1',
     title: 'Đào, Phở và Piano',
-    posterUrl: 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=400',
+    posterUrl: 'https://upload.wikimedia.org/wikipedia/vi/2/29/%C3%81p_ph%C3%ADch_%C4%90%C3%A0o%2C_ph%E1%BB%9F_v%C3%A0_piano.jpg',
     duration: 115,
     genre: 'Chính kịch, Lịch sử',
     releaseDate: '2024-02-23',
@@ -14,7 +14,7 @@ let movies: Movie[] = [
   {
     id: '2',
     title: 'Mai',
-    posterUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=400',
+    posterUrl: 'https://upload.wikimedia.org/wikipedia/vi/3/36/Mai_2024_poster.jpg',
     duration: 131,
     genre: 'Tâm lý, Tình cảm',
     releaseDate: '2024-02-10',

@@ -9,5 +9,6 @@ public record ShowtimeResponse(
     Long cinemaId,
     LocalDate showtimeDate,
     LocalTime startTime,
-    String roomNumber
+    String roomNumber,
+    java.math.BigDecimal price
 ) {}

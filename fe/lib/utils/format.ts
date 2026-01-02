@@ -24,5 +24,9 @@ export const formatDateTime = (timestamp: number): string => {
 };
 
 export const formatTime = (time: string): string => {
+  // Nếu có giây (HH:mm:ss), chỉ lấy HH:mm
+  if (time && time.split(':').length === 3) {
+    return time.substring(0, 5); // Cắt lấy HH:mm
+  }
   return time;
 };

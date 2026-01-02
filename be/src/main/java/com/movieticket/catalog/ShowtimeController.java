@@ -49,7 +49,8 @@ public class ShowtimeController {
             st.getCinema().getId(),
             st.getShowtimeDate(),
             st.getStartTime(),
-            st.getRoomNumber()
+            st.getRoomNumber(),
+            st.getBasePrice()
         ))
         .toList();
     return ApiResponse.ok(resp);
@@ -64,14 +65,13 @@ public class ShowtimeController {
         st.getCinema().getId(),
         st.getShowtimeDate(),
         st.getStartTime(),
-        st.getRoomNumber()
+        st.getRoomNumber(),
+        st.getBasePrice()
     ));
   }
 
   @GetMapping("/{id}/seats")
   public ApiResponse<?> seats(@PathVariable("id") Long showtimeId) {
-    seatLockRepository.expireAll(Instant.now());
-
     List<Seat> seats = seatRepository.findByShowtime_IdOrderBySeatRowAscSeatNumberAsc(showtimeId);
     Instant now = Instant.now();
 
