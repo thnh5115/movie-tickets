@@ -1,25 +1,29 @@
 server:
-  port: ${PORT:8080}  # Render tự động inject PORT
+  port: ${PORT:8080}
+  address: 0.0.0.0
 
 spring:
+  main:
+    web-application-type: servlet
+
   datasource:
-    # Railway MySQL Connection String
-    # Format: jdbc:mysql://[HOST]:[PORT]/[DATABASE]
-    url: ${DATABASE_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: jdbc:mysql://mysql.railway.internal:3306/railway?useSSL=true&serverTimezone=Asia/Ho_Chi_Minh
+    username: root
+    password: dGfCIDCtdlIoPBNREbxgYHvzDNzbFHez
     driver-class-name: com.mysql.cj.jdbc.Driver
+
     hikari:
       maximum-pool-size: 5
+      minimum-idle: 1
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-  
+
   jpa:
     hibernate:
-      ddl-auto: none  # KHÔNG TỰ ĐỘNG TẠO BẢNG (dùng init.sql)
+      ddl-auto: none
     open-in-view: false
-    show-sql: false  # Tắt log SQL trên production
+    show-sql: false
     properties:
       hibernate:
         format_sql: false
@@ -27,11 +31,9 @@ spring:
         jdbc:
           time_zone: Asia/Ho_Chi_Minh
 
-# CORS Origins - Frontend URL từ Vercel
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
+  allowed-origins: "*"
 
 logging:
   level:
     root: INFO
-    com.movieticket: INFO
