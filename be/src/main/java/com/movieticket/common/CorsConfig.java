@@ -8,21 +8,28 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
   
-  // Đọc CORS origins từ environment variable
-  // Local: http://localhost:3000
-  // Production: https://your-app.vercel.app
-  @Value("${cors.allowed-origins:http://localhost:3000}")
+  // CORS cho Render deployment
+  // Cho phép mọi origin để dễ demo (có thể restrict sau)
+  @Value("${cors.allowed-origins:*}")
   private String allowedOrigins;
   
   @Override
   public void addCorsMappings(CorsRegistry registry) {
-    // Split multiple origins by comma (nếu có nhiều domain)
-    String[] origins = allowedOrigins.split(",");
-    
-    registry.addMapping("/**")
-        .allowedOrigins(origins)
-        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-        .allowedHeaders("*")
-        .allowCredentials(true);
+    // Nếu allowedOrigins = "*", dùng allowedOriginPatterns
+    if ("*".equals(allowedOrigins)) {
+      registry.addMapping("/**")
+          .allowedOriginPatterns("*")
+          .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+          .allowedHeaders("*")
+          .allowCredentials(true);
+    } else {
+      // Split multiple origins by comma
+      String[] origins = allowedOrigins.split(",");
+      registry.addMapping("/**")
+          .allowedOrigins(origins)
+          .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+          .allowedHeaders("*")
+          .allowCredentials(true);
+    }
   }
 }

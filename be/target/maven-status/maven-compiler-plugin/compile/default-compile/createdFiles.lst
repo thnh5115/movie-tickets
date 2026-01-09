@@ -1,4 +1,5 @@
 com\movieticket\booking\dto\ConfirmBookingRequest.class
+com\movieticket\common\HealthController.class
 com\movieticket\common\GlobalExceptionHandler.class
 com\movieticket\booking\BookingController.class
 com\movieticket\MovieTicketApplication.class

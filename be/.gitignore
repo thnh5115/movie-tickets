@@ -1,0 +1,59 @@
+### Maven ###
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+# https://github.com/takari/maven-wrapper#usage-without-binary-jar
+# .mvn/wrapper/maven-wrapper.jar
+
+### Java ###
+*.class
+*.log
+*.ctxt
+.mtj.tmp/
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+replay_pid*
+
+### IDE ###
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+*.swp
+*.swo
+*~
+
+### Spring Boot ###
+HELP.md
+.gradle
+build/
+
+### Environment Variables ###
+.env
+.env.local
+.env.*.local
+application-local.yml
+application-local.properties
+
+### OS ###
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
