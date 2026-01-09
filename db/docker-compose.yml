@@ -23,8 +23,6 @@ services:
     volumes:
       # Mount file init.sql để tạo schema tự động khi container khởi động
       - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql
-      # Mount file seed-data.sql để insert dữ liệu mẫu
-      - ./seed-data.sql:/docker-entrypoint-initdb.d/02-seed-data.sql
       # Volume để lưu trữ dữ liệu persistent
       - mysql_data:/var/lib/mysql
     networks:
@@ -34,6 +32,49 @@ services:
       timeout: 20s
       retries: 10
       interval: 10s
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ../be
+      dockerfile: Dockerfile
+    container_name: movie-tickets-backend
+    restart: always
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/movie_tickets_db?useSSL=false&serverTimezone=Asia/Ho_Chi_Minh&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: movie_app
+      SPRING_DATASOURCE_PASSWORD: movie_pass123
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - movie-tickets-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ../fe
+      dockerfile: Dockerfile
+    container_name: movie-tickets-frontend
+    restart: always
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - movie-tickets-network
 
   # phpMyAdmin - Công cụ quản trị database qua web interface
   phpmyadmin:

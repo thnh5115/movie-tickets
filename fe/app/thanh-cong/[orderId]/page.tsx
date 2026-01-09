@@ -64,7 +64,7 @@ export default function SuccessPage({ params }: { params: Promise<{ orderId: str
         const [movie, cinemas, seats] = await Promise.all([
           moviesApi.getById(showtime.movieId),
           showtimesApi.getCinemas(),
-          seatsApi.getSeats(orderData.showtimeId, showtime.price),
+          seatsApi.getSeats(orderData.showtimeId),
         ]);
 
         const cinema = cinemas.find((c) => c.id === showtime.cinemaId);

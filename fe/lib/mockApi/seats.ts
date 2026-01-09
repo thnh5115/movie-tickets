@@ -59,7 +59,7 @@ export const seatsApi = {
       showtimeId: String(showtimeId),
       row: s.seatRow,
       number: s.seatNumber,
-      status: s.status === 'AVAILABLE' ? 'TRỐNG' : s.status === 'LOCKED' ? 'ĐANG_GIỮ' : 'ĐÃ_ĐẶT',
+      status: (s.status === 'AVAILABLE' ? 'TRỐNG' : s.status === 'LOCKED' ? 'ĐANG_GIỮ' : 'ĐÃ_ĐẶT') as 'TRỐNG' | 'ĐANG_GIỮ' | 'ĐÃ_ĐẶT',
       heldBy: s.lockedByUserId ? String(s.lockedByUserId) : undefined,
       holdUntil: s.lockExpiresAt ? new Date(s.lockExpiresAt).getTime() : undefined,
       price: Number(s.price ?? 0),

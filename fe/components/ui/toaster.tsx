@@ -10,7 +10,7 @@ export function Toaster() {
 
   return (
     <div className="fixed top-4 right-4 z-[100] flex max-h-screen flex-col gap-2 pointer-events-none md:max-w-[420px] w-auto">
-      {toasts.map(function ({ id, title, description, variant, onOpenChange, ...props }) {
+      {toasts.map(function ({ id, title, description, variant, ...props }) {
         return (
           <div
             key={id}

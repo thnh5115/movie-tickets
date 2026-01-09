@@ -70,7 +70,7 @@ export default function TicketVaultPage() {
             const [movie, cinemas, seats] = await Promise.all([
               moviesApi.getById(showtime.movieId),
               showtimesApi.getCinemas(),
-              seatsApi.getSeats(order.showtimeId, showtime.price),
+              seatsApi.getSeats(order.showtimeId),
             ]);
 
             const cinema = cinemas.find((c) => c.id === showtime.cinemaId);

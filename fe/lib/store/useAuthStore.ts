@@ -1,67 +1,50 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { User } from '@/lib/types';
-import fetchClient from '@/lib/api/fetchClient';
-
-// Flag để tránh gọi initialize nhiều lần
-let isInitializing = false;
-let hasInitialized = false;
 
 interface AuthState {
   user: User | null;
   isLoading: boolean;
-  isInitialized: boolean; // Đánh dấu đã check session xong chưa
+  isInitialized: boolean;
   setUser: (user: User | null) => void;
-  logout: () => Promise<void>;
-  initialize: () => Promise<void>;
+  logout: () => void;
+  initialize: () => void;
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  isLoading: true,
-  isInitialized: false, // Ban đầu chưa initialize
-  setUser: (user) => {
-    hasInitialized = true; // Đánh dấu đã initialize khi set user
-    set({ user, isLoading: false, isInitialized: true });
-  },
-  
-  // Logout gọi API backend để xóa session
-  logout: async () => {
-    try {
-      await fetchClient.request('/auth/logout', { method: 'POST' });
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-    hasInitialized = false; // Reset để có thể initialize lại
-    set({ user: null, isInitialized: false });
-  },
-  
-  // Initialize kiểm tra session từ backend
-  initialize: async () => {
-    // Tránh gọi initialize nhiều lần
-    if (isInitializing || hasInitialized) {
-      return;
-    }
-    
-    isInitializing = true;
-    
-    try {
-      const data = await fetchClient.request('/auth/session', { method: 'GET' });
-      if (data?.authenticated) {
-        const user: User = {
-          id: String(data.userId),
-          email: data.email,
-          name: data.name,
-        };
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      isLoading: false,
+      isInitialized: false,
+      
+      setUser: (user) => {
         set({ user, isLoading: false, isInitialized: true });
-      } else {
-        set({ user: null, isLoading: false, isInitialized: true });
-      }
-    } catch (error) {
-      console.error('Session check error:', error);
-      set({ user: null, isLoading: false, isInitialized: true });
-    } finally {
-      isInitializing = false;
-      hasInitialized = true;
+      },
+      
+      // Logout đơn giản: xóa user khỏi state (persist sẽ tự xóa localStorage)
+      logout: () => {
+        set({ user: null, isInitialized: true });
+      },
+      
+      // Initialize: đọc từ localStorage thông qua persist middleware
+      // Zustand persist tự động hydrate state từ localStorage khi app load
+      initialize: () => {
+        const currentUser = get().user;
+        set({ isLoading: false, isInitialized: true, user: currentUser });
+      },
+    }),
+    {
+      name: 'auth-storage', // key trong localStorage
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ user: state.user }), // chỉ persist user, không persist loading states
+      onRehydrateStorage: () => (state) => {
+        // Callback khi hydrate xong từ localStorage
+        if (state) {
+          state.isInitialized = true;
+          state.isLoading = false;
+        }
+      },
     }
-  },
-}));
+  )
+);

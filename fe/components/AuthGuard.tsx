@@ -5,18 +5,18 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/useAuthStore';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, isLoading, isInitialized } = useAuthStore();
+  const { user, isInitialized } = useAuthStore();
   const router = useRouter();
 
   useEffect(() => {
-    // Chỉ redirect khi đã check session xong (isInitialized = true) và không có user
+    // Chỉ redirect khi đã hydrate xong và không có user
     if (isInitialized && !user) {
       router.push('/dang-nhap');
     }
   }, [user, isInitialized, router]);
 
-  // Đợi initialize hoàn thành trước khi hiển thị nội dung
-  if (!isInitialized || isLoading) {
+  // Đợi hydrate hoàn thành
+  if (!isInitialized) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center">
@@ -27,7 +27,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Nếu đã initialize xong mà không có user thì không render gì (sẽ redirect ở useEffect)
+  // Nếu không có user thì không render (sẽ redirect)
   if (!user) {
     return null;
   }

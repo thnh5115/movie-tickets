@@ -45,7 +45,7 @@ function SeatSelectionContent() {
     if (!showtimeId || !showtime || !user) return;
 
     try {
-      const seatsData = await seatsApi.getSeats(showtimeId, showtime.price);
+      const seatsData = await seatsApi.getSeats(showtimeId);
       setSeats(seatsData);
       
       // Chỉ đồng bộ selectedSeats khi first load
@@ -87,7 +87,7 @@ function SeatSelectionContent() {
     if (!showtimeId || !showtime) return;
 
     try {
-      const seatsData = await seatsApi.getSeats(showtimeId, showtime.price);
+      const seatsData = await seatsApi.getSeats(showtimeId);
       setSeats(seatsData);
     } catch (error) {
       // Silent error

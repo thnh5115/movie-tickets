@@ -1,23 +1,27 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/lib/store/useAuthStore';
 
 /**
- * SessionProvider: Khởi tạo và kiểm tra session từ backend khi app load
- * Gọi API /auth/session để xác thực session cookie
+ * SessionProvider: Đợi Zustand hydrate từ localStorage trước khi render children
+ * Giải quyết vấn đề hydration mismatch giữa server và client
  */
 export function SessionProvider({ children }: { children: React.ReactNode }) {
+  const [isHydrated, setIsHydrated] = useState(false);
   const initialize = useAuthStore((state) => state.initialize);
-  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    // Chỉ gọi initialize 1 lần duy nhất
-    if (!hasInitialized.current) {
-      hasInitialized.current = true;
-      initialize();
-    }
+    // Đợi Zustand persist hydrate xong từ localStorage
+    // Sau đó đánh dấu isInitialized = true
+    initialize();
+    setIsHydrated(true);
   }, [initialize]);
+
+  // Tránh hydration mismatch: đợi client hydrate xong mới render
+  if (!isHydrated) {
+    return null;
+  }
 
   return <>{children}</>;
 }
