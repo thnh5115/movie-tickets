@@ -6,6 +6,7 @@
   <groupId>com.movieticket</groupId>
   <artifactId>movieticket</artifactId>
   <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
   <name>movieticket</name>
   <description>Movie ticket</description>
 
