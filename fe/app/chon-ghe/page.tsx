@@ -24,8 +24,8 @@ function SeatSelectionContent() {
   const searchParams = useSearchParams();
   const showtimeId = searchParams.get('showtimeId');
   const router = useRouter();
-  const { user } = useAuthStore();
-  const { selectedSeats, toggleSeat, clearSeats } = useBookingStore();
+  const { user, isInitialized } = useAuthStore();
+  const { selectedSeats, toggleSeat, clearSeats, setSelectedSeats } = useBookingStore();
   const { toast } = useToast();
 
   const [seats, setSeats] = useState<Seat[]>([]);
@@ -38,13 +38,35 @@ function SeatSelectionContent() {
   const [countdown, setCountdown] = useState<string>('');
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
 
+  // Load seats và đồng bộ selectedSeats (dùng cho first load và manual refresh)
   const loadSeats = useCallback(async () => {
-    if (!showtimeId || !showtime) return;
+    if (!showtimeId || !showtime || !user) return;
 
     try {
       const seatsData = await seatsApi.getSeats(showtimeId, showtime.price);
       setSeats(seatsData);
+      
+      // Chỉ đồng bộ selectedSeats khi first load
+      if (isFirstLoad) {
+        const myHeldSeats = seatsData
+          .filter(seat => seat.heldBy === user.id && seat.status === 'ĐANG_GIỮ')
+          .map(seat => seat.id);
+        
+        setSelectedSeats(myHeldSeats);
+        
+        if (myHeldSeats.length > 0) {
+          const heldSeatsWithTime = seatsData.filter(s => myHeldSeats.includes(s.id));
+          if (heldSeatsWithTime.length > 0) {
+            const maxHoldUntil = Math.max(...heldSeatsWithTime.map(s => s.holdUntil || 0));
+            setHoldUntil(maxHoldUntil);
+          }
+        }
+        setIsFirstLoad(false);
+      }
+      // Sau first load, KHÔNG tự động clear selectedSeats
+      // Let user control thông qua toggleSeat và handleSeatClick
     } catch (error) {
       toast({
         title: 'Lỗi',
@@ -52,7 +74,7 @@ function SeatSelectionContent() {
         variant: 'destructive',
       });
     }
-  }, [showtimeId, showtime, toast]);
+  }, [showtimeId, showtime, user, toast, setSelectedSeats, isFirstLoad]);
 
   const refreshSeats = async () => {
     setIsRefreshing(true);
@@ -60,14 +82,37 @@ function SeatSelectionContent() {
     setIsRefreshing(false);
   };
 
+  // Chỉ update danh sách ghế mà không đồng bộ selectedSeats (dùng khi user đang tương tác)
+  const updateSeatsOnly = useCallback(async () => {
+    if (!showtimeId || !showtime) return;
+
+    try {
+      const seatsData = await seatsApi.getSeats(showtimeId, showtime.price);
+      setSeats(seatsData);
+    } catch (error) {
+      // Silent error
+    }
+  }, [showtimeId, showtime]);
+
+  // Reset isFirstLoad khi showtimeId hoặc user thay đổi (để đồng bộ lại selectedSeats)
   useEffect(() => {
-    if (!user) {
+    setIsFirstLoad(true);
+  }, [showtimeId, user]);
+
+  useEffect(() => {
+    // Chỉ redirect khi đã initialize xong và không có user
+    if (isInitialized && !user) {
       router.push('/dang-nhap');
       return;
     }
 
     if (!showtimeId) {
       router.push('/suat-chieu');
+      return;
+    }
+
+    // Chỉ load data khi đã có user
+    if (!user) {
       return;
     }
 
@@ -102,7 +147,7 @@ function SeatSelectionContent() {
     };
 
     loadData();
-  }, [showtimeId, user, router, toast]);
+  }, [showtimeId, user, isInitialized, router, toast]);
 
   useEffect(() => {
     if (showtime) {
@@ -110,14 +155,14 @@ function SeatSelectionContent() {
     }
   }, [showtime, loadSeats]);
 
-  // Auto-refresh every 3 seconds
+  // Auto-refresh every 3 seconds - chỉ update seats list, không đồng bộ selectedSeats
   useEffect(() => {
     const interval = setInterval(() => {
-      loadSeats();
+      updateSeatsOnly();
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [loadSeats]);
+  }, [updateSeatsOnly]);
 
   // Countdown timer
   useEffect(() => {
@@ -129,14 +174,15 @@ function SeatSelectionContent() {
         setHoldUntil(null);
         setCountdown('');
         clearSeats();
-        loadSeats();
+        // Không gọi updateSeatsOnly ở đây để tránh dependency issues
+        // Auto-refresh sẽ tự động cập nhật sau 3 giây
       } else {
         setCountdown(formatCountdown(remaining));
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [holdUntil, clearSeats, loadSeats, toast]);
+  }, [holdUntil, clearSeats]);
 
   const handleSeatClick = async (seatId: string) => {
     if (!user || !showtimeId) return;
@@ -154,7 +200,8 @@ function SeatSelectionContent() {
         if (remainingSeats.length > 0) {
           await seatsApi.holdSeats(showtimeId, remainingSeats, user.id);
         }
-        await loadSeats();
+        // Chỉ update seats list, không đồng bộ selectedSeats
+        await updateSeatsOnly();
       } catch (error) {
         // Silent error
       }
@@ -171,6 +218,9 @@ function SeatSelectionContent() {
         toggleSeat(seatId);
         const maxHoldUntil = Math.max(...result.seats.map((s) => s.holdUntil || 0));
         setHoldUntil(maxHoldUntil);
+        
+        // Chỉ update seats list, không đồng bộ selectedSeats
+        await updateSeatsOnly();
       } else {
         toast({
           title: 'Không thể chọn ghế',
@@ -178,8 +228,6 @@ function SeatSelectionContent() {
           variant: 'destructive',
         });
       }
-
-      await loadSeats();
     } catch (error) {
       toast({
         title: 'Lỗi',
@@ -259,7 +307,15 @@ function SeatSelectionContent() {
     }
   };
 
-  if (!user) return null;
+  // Hiển thị loading khi chưa initialize xong
+  if (!isInitialized || !user) {
+    return (
+      <div className="container mx-auto px-4 py-12 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+        <p className="text-muted-foreground">Đang kiểm tra phiên đăng nhập...</p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

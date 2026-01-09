@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store/useAuthStore';
@@ -15,15 +14,12 @@ import {
 import { Film, Ticket, LogOut, User } from 'lucide-react';
 
 export function Navbar() {
-  const { user, logout, initialize } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const router = useRouter();
 
-  useEffect(() => {
-    initialize();
-  }, [initialize]);
-
-  const handleLogout = () => {
-    logout();
+  // Logout bây giờ là async, gọi API backend
+  const handleLogout = async () => {
+    await logout();
     router.push('/');
   };
 

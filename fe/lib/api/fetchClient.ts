@@ -7,7 +7,8 @@ async function request(path: string, opts: RequestInit = {}, userId?: string) {
   };
   if (userId) headers['X-User-Id'] = userId;
 
-  const res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
+  // Thêm credentials để gửi/nhận cookie session
+  const res = await fetch(`${API_BASE}${path}`, { ...opts, headers, credentials: 'include' });
   const text = await res.text();
 
   if (!res.ok) {

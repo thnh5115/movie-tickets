@@ -35,7 +35,7 @@ const mapBackendStatus = (status: string): Order['status'] => {
 };
 
 export default function TicketVaultPage() {
-  const { user } = useAuthStore();
+  const { user, isInitialized } = useAuthStore();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -102,13 +102,17 @@ export default function TicketVaultPage() {
   };
 
   useEffect(() => {
-    if (!user) {
+    // Chỉ redirect khi đã initialize xong và không có user
+    if (isInitialized && !user) {
       router.push('/dang-nhap');
       return;
     }
 
-    loadOrders();
-  }, [user, router]);
+    // Chỉ load orders khi đã có user
+    if (user) {
+      loadOrders();
+    }
+  }, [user, isInitialized, router]);
 
   // Update countdowns
   useEffect(() => {
@@ -175,7 +179,15 @@ export default function TicketVaultPage() {
     }
   };
 
-  if (!user) return null;
+  // Hiển thị loading khi chưa initialize xong
+  if (!isInitialized || !user) {
+    return (
+      <div className="container mx-auto px-4 py-12 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4" />
+        <p className="text-muted-foreground">Đang kiểm tra phiên đăng nhập...</p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

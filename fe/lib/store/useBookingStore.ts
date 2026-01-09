@@ -4,6 +4,7 @@ interface BookingState {
   selectedSeats: string[];
   showtimeId: string | null;
   setShowtimeId: (id: string) => void;
+  setSelectedSeats: (seats: string[]) => void;
   toggleSeat: (seatId: string) => void;
   clearSeats: () => void;
   reset: () => void;
@@ -13,6 +14,7 @@ export const useBookingStore = create<BookingState>((set) => ({
   selectedSeats: [],
   showtimeId: null,
   setShowtimeId: (id) => set({ showtimeId: id }),
+  setSelectedSeats: (seats) => set({ selectedSeats: seats }),
   toggleSeat: (seatId) =>
     set((state) => ({
       selectedSeats: state.selectedSeats.includes(seatId)
