@@ -7,6 +7,9 @@ spring:
     url: jdbc:mysql://localhost:3307/movie_tickets_db?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Ho_Chi_Minh
     username: movie_app
     password: movie_pass123
+  sql:
+    init:
+      mode: always
   jpa:
     hibernate:
       ddl-auto: none
